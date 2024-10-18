@@ -9,6 +9,7 @@ type DrawCupSetArg = {
   y: number;
   rotate: number;
   ctx: CanvasRenderingContext2D;
+  hasBall?: boolean;
 };
 type DrawPathArg = {
   x: number;
@@ -17,6 +18,12 @@ type DrawPathArg = {
 };
 type DrawCupPathArg = DrawPathArg;
 type DrawCupShadowPathArg = DrawPathArg & { xOffset: number };
+type DrawBallPath = {
+  x: number;
+  y: number;
+  ctx: CanvasRenderingContext2D;
+};
+type DrawBallPathArg = DrawBallPath;
 
 export default function SetupDrawingCupSet({
   cupHeight,
@@ -26,19 +33,27 @@ export default function SetupDrawingCupSet({
 }: SetupDrawingCupArg) {
   const widthDifference = Math.abs(cupBottomWidth - cupTopWidth);
   const curve = 10;
+  const ballWidth = 20;
+  const rotateSettings = {
+    max: 60,
+    min: 0,
+  };
+  const shadowAlpha = {
+    min: 0.3,
+    max: 0.4,
+  };
+  // for cup rotate
+  const scale = {
+    min: 0.6,
+  };
 
-  const drawCupSet = ({ x, y, ctx, rotate }: DrawCupSetArg) => {
-    const rotateSettings = {
-      max: 60,
-      min: 0,
-    };
-    const shadowAlpha = {
-      min: 0.3,
-      max: 0.4,
-    };
-    const scale = {
-      min: 0.6,
-    };
+  const drawCupSet = ({ x, y, ctx, rotate, hasBall }: DrawCupSetArg) => {
+    ctx.save();
+
+    // draw ball shadow
+    if (hasBall) {
+      drawBallShadowPath({ x, y, ctx });
+    }
 
     rotate =
       Math.max(rotateSettings.min, Math.min(rotateSettings.max, rotate)) * -1;
@@ -47,9 +62,7 @@ export default function SetupDrawingCupSet({
     const hasRotate = rotate !== 0;
     const [pathX, pathY] = hasRotate ? [0, 0] : [x, y];
 
-    ctx.restore();
-    ctx.save();
-
+    // draw cup shadow
     ctx.globalAlpha = shadowAlpha.max;
     if (hasRotate) {
       ctx.globalAlpha =
@@ -85,8 +98,12 @@ export default function SetupDrawingCupSet({
     ctx.fill(cupShadow);
     ctx.restore();
 
-    ctx.save();
+    // draw ball
+    if (hasBall) {
+      drawBallPath({ x, y, ctx });
+    }
 
+    // draw cup
     if (hasRotate) {
       ctx.translate(x, y);
       ctx.rotate((Math.PI / 180) * rotate);
@@ -103,6 +120,33 @@ export default function SetupDrawingCupSet({
     ctx.restore();
 
     return {};
+  };
+
+  const drawBallShadowPath = ({ x, y, ctx }: DrawBallPathArg) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(
+      x + cupBottomWidth / 2,
+      y,
+      ballWidth / 4,
+      (ballWidth / 7) * 6,
+      Math.PI / 2,
+      0,
+      Math.PI * 2
+    );
+    ctx.globalAlpha = shadowAlpha.max;
+    ctx.fillStyle = 'gray';
+    ctx.fill();
+    ctx.closePath();
+    ctx.restore();
+  };
+
+  const drawBallPath = ({ x, y, ctx }: DrawBallPathArg) => {
+    ctx.beginPath();
+    ctx.arc(x + cupBottomWidth / 2, y - 20, ballWidth, 0, Math.PI * 2);
+    ctx.fillStyle = 'yellow';
+    ctx.fill();
+    ctx.closePath();
   };
 
   const drawCupPath = ({ x, y, height }: DrawCupPathArg) => {
