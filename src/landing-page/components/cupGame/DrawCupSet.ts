@@ -15,6 +15,8 @@ type DrawPathArg = {
   x: number;
   y: number;
   height: number;
+  ctx: CanvasRenderingContext2D;
+  color: string;
 };
 type DrawCupPathArg = DrawPathArg;
 type DrawCupShadowPathArg = DrawPathArg & { xOffset: number };
@@ -22,6 +24,7 @@ type DrawBallPath = {
   x: number;
   y: number;
   ctx: CanvasRenderingContext2D;
+  color: string;
 };
 type DrawBallPathArg = DrawBallPath;
 
@@ -32,7 +35,7 @@ export default function SetupDrawingCupSet({
   cupShadowHeight,
 }: SetupDrawingCupArg) {
   const widthDifference = Math.abs(cupBottomWidth - cupTopWidth);
-  const curve = 10;
+  const cupBezierCurve = 10;
   const ballWidth = 20;
   const rotateSettings = {
     max: 60,
@@ -42,25 +45,21 @@ export default function SetupDrawingCupSet({
     min: 0.3,
     max: 0.4,
   };
-  // for cup rotate
-  const scale = {
-    min: 0.6,
-  };
 
   const drawCupSet = ({ x, y, ctx, rotate, hasBall }: DrawCupSetArg) => {
     ctx.save();
 
+    const fixedRotate =
+      Math.max(rotateSettings.min, Math.min(rotateSettings.max, rotate)) * -1;
+    const rotateStepPercentage =
+      (Math.abs(fixedRotate) - rotateSettings.min) / 60;
+    const hasRotate = rotate !== 0;
+    const [cupX, cupY] = hasRotate ? [0, 0] : [x, y];
+
     // draw ball shadow
     if (hasBall) {
-      drawBallShadowPath({ x, y, ctx });
+      drawBallShadowPath({ x, y, ctx, color: 'gray' });
     }
-
-    rotate =
-      Math.max(rotateSettings.min, Math.min(rotateSettings.max, rotate)) * -1;
-    const rotateStepPercentage = (Math.abs(rotate) - rotateSettings.min) / 60;
-
-    const hasRotate = rotate !== 0;
-    const [pathX, pathY] = hasRotate ? [0, 0] : [x, y];
 
     // draw cup shadow
     ctx.globalAlpha = shadowAlpha.max;
@@ -74,6 +73,9 @@ export default function SetupDrawingCupSet({
       const shadowRotate = (Math.PI / 180) * 10 * rotateStepPercentage * -1;
       ctx.rotate(shadowRotate);
 
+      const scale = {
+        min: 0.6,
+      };
       const shadowScale = 1 - (1 - scale.min) * rotateStepPercentage;
       ctx.scale(shadowScale, shadowScale);
 
@@ -81,48 +83,46 @@ export default function SetupDrawingCupSet({
       ctx.transform(
         1,
         0,
-        Math.tan((Math.PI / 180) * rotate * -1 * rotateStepPercentage),
+        Math.tan((Math.PI / 180) * fixedRotate * -1 * rotateStepPercentage),
         1,
         0,
         0
       );
     }
-
-    const cupShadow = drawCupShadowPath({
-      x: pathX,
-      y: pathY,
+    drawCupShadowPath({
+      x: cupX,
+      y: cupY,
       height: cupShadowHeight,
       xOffset: 50,
+      color: '#999',
+      ctx,
     });
-    ctx.fillStyle = '#999';
-    ctx.fill(cupShadow);
     ctx.restore();
 
     // draw ball
     if (hasBall) {
-      drawBallPath({ x, y, ctx });
+      drawBallPath({ x, y, ctx, color: '#dc2626' });
     }
 
     // draw cup
     if (hasRotate) {
       ctx.translate(x, y);
-      ctx.rotate((Math.PI / 180) * rotate);
+      ctx.rotate((Math.PI / 180) * fixedRotate);
     }
-
-    const cup = drawCupPath({
-      x: pathX,
-      y: pathY,
+    drawCupPath({
+      x: cupX,
+      y: cupY,
       height: cupHeight,
+      color: '#FFA500',
+      ctx,
     });
-    ctx.fillStyle = '#FFA500';
-    ctx.fill(cup);
 
     ctx.restore();
 
     return {};
   };
 
-  const drawBallShadowPath = ({ x, y, ctx }: DrawBallPathArg) => {
+  const drawBallShadowPath = ({ x, y, ctx, color }: DrawBallPathArg) => {
     ctx.save();
     ctx.beginPath();
     ctx.ellipse(
@@ -135,21 +135,21 @@ export default function SetupDrawingCupSet({
       Math.PI * 2
     );
     ctx.globalAlpha = shadowAlpha.max;
-    ctx.fillStyle = 'gray';
+    ctx.fillStyle = color;
     ctx.fill();
     ctx.closePath();
     ctx.restore();
   };
 
-  const drawBallPath = ({ x, y, ctx }: DrawBallPathArg) => {
+  const drawBallPath = ({ x, y, ctx, color }: DrawBallPathArg) => {
     ctx.beginPath();
     ctx.arc(x + cupBottomWidth / 2, y - 20, ballWidth, 0, Math.PI * 2);
-    ctx.fillStyle = 'yellow';
+    ctx.fillStyle = color;
     ctx.fill();
     ctx.closePath();
   };
 
-  const drawCupPath = ({ x, y, height }: DrawCupPathArg) => {
+  const drawCupPath = ({ x, y, height, ctx, color }: DrawCupPathArg) => {
     const cup = new Path2D();
     const [rightBottomX, rightBottomY] = [x + cupBottomWidth, y];
     const [rightTopX, rightTopY] = [
@@ -160,21 +160,24 @@ export default function SetupDrawingCupSet({
     cup.moveTo(x, y); // draw line from left bottom counterclockwise
     cup.bezierCurveTo(
       x,
-      y + curve,
+      y + cupBezierCurve,
       rightBottomX,
-      rightBottomY + curve,
+      rightBottomY + cupBezierCurve,
       rightBottomX,
       rightBottomY
     );
     cup.lineTo(rightTopX, rightTopY);
     cup.bezierCurveTo(
       rightTopX,
-      rightTopY - curve,
+      rightTopY - cupBezierCurve,
       leftTopX,
-      leftTopY - curve,
+      leftTopY - cupBezierCurve,
       leftTopX,
       leftTopY
     );
+
+    ctx.fillStyle = color;
+    ctx.fill(cup);
     return cup;
   };
 
@@ -183,6 +186,8 @@ export default function SetupDrawingCupSet({
     y,
     height,
     xOffset,
+    color,
+    ctx,
   }: DrawCupShadowPathArg) => {
     const cup = new Path2D();
     const [rightBottomX, rightBottomY] = [x + cupBottomWidth, y];
@@ -197,21 +202,24 @@ export default function SetupDrawingCupSet({
     cup.moveTo(x, y); // draw line from left bottom counterclockwise
     cup.bezierCurveTo(
       x,
-      y + curve,
+      y + cupBezierCurve,
       rightBottomX,
-      rightBottomY + curve,
+      rightBottomY + cupBezierCurve,
       rightBottomX,
       rightBottomY
     );
     cup.lineTo(rightTopX, rightTopY);
     cup.bezierCurveTo(
-      rightTopX + curve,
-      rightTopY - curve,
-      leftTopX + curve,
-      leftTopY - curve,
+      rightTopX + cupBezierCurve,
+      rightTopY - cupBezierCurve,
+      leftTopX + cupBezierCurve,
+      leftTopY - cupBezierCurve,
       leftTopX,
       leftTopY
     );
+
+    ctx.fillStyle = color;
+    ctx.fill(cup);
     return cup;
   };
 
