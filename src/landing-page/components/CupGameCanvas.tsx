@@ -1,76 +1,6 @@
-import { useRef, useState, useEffect } from 'react';
-
-type SetRef<T> = (node: T | null) => void;
-type Width = number;
-type Height = number;
-type Size = [Width, Height];
-
-function useElementSize<T extends HTMLElement = HTMLDivElement>(): {
-  setRef: SetRef<T>;
-  size: Size;
-} {
-  const [size, setSize] = useState<Size>([0, 0]);
-  const [ref, setRef] = useState<T | null>(null);
-  useEffect(() => {
-    if (ref === null) return;
-    const element = ref;
-    const handleResize = () => {
-      const { width: canvasWidth, height: canvasHeight } =
-        element.getBoundingClientRect();
-      requestAnimationFrame(() => setSize([canvasWidth, canvasHeight]));
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [ref]);
-
-  return { size, setRef };
-}
-
-const drawCupPath = ({
-  x,
-  y,
-  height,
-  topWidth,
-  bottomWidth,
-}: {
-  x: number;
-  y: number;
-  height: number;
-  topWidth: number;
-  bottomWidth: number;
-}) => {
-  let cup = new Path2D();
-  cup.moveTo(x, y);
-  cup.quadraticCurveTo(x + topWidth, y, x + topWidth, y);
-  cup.lineTo(x + topWidth + (bottomWidth - topWidth) / 2, y + height);
-  cup.lineTo(x - (bottomWidth - topWidth) / 2, y + height);
-  return cup;
-};
-
-const drawCupShadowPath = ({
-  x,
-  y,
-  height,
-  topWidth,
-  bottomWidth,
-}: {
-  x: number;
-  y: number;
-  height: number;
-  topWidth: number;
-  bottomWidth: number;
-}) => {
-  let cup = new Path2D();
-  cup.moveTo(x, y);
-  cup.quadraticCurveTo(x + topWidth, y, x + topWidth, y);
-  cup.lineTo(x + topWidth + (bottomWidth - topWidth) / 2, y + height);
-  cup.lineTo(x - (bottomWidth - topWidth) / 2, y + height);
-  return cup;
-};
+import { useRef, useEffect } from 'react';
+import SetupDrawingCupSet from './cupGame/DrawCupSet';
+import useElementSize from '@/lib/useElementSize';
 
 export default function CupGameCanvas() {
   const gameCanvas = useRef<HTMLCanvasElement>(null);
@@ -90,67 +20,36 @@ export default function CupGameCanvas() {
     ctx.scale(scale, scale);
   }
 
-  function draw({ ctx }: { ctx: CanvasRenderingContext2D }) {
+  function drawEverything({ ctx }: { ctx: CanvasRenderingContext2D }) {
+    // background color
+    ctx.fillStyle = '#FBFBF4';
+    ctx.fillRect(0, 0, canvasSize[0], canvasSize[1]);
+
     const cupHeight = 120;
     const cupTopWidth = 80;
     const cupBottomWidth = 100;
 
+    const { drawCupSet } = SetupDrawingCupSet({
+      cupHeight,
+      cupTopWidth,
+      cupBottomWidth,
+      cupShadowHeight: cupHeight / 3,
+    });
+
     const [canvasWidth, canvasHeight] = canvasSize;
 
-    const topLeftX = (canvasWidth / 7) * 2 - cupBottomWidth / 2;
-    const topLeftY = (canvasHeight / 5) * 1;
+    const topLeftCupX = (canvasWidth / 7) * 2 - cupBottomWidth / 2;
+    const topLeftCupY = (canvasHeight / 5) * 2;
+    drawCupSet({ x: topLeftCupX, y: topLeftCupY, rotate: 0, ctx });
 
-    const topRightX = (canvasWidth / 7) * 5 - cupBottomWidth / 2;
-    const topRightY = (canvasHeight / 5) * 1;
+    const topRightCupX = (canvasWidth / 7) * 5 - cupBottomWidth / 2;
+    const topRightCupY = (canvasHeight / 5) * 2;
+    drawCupSet({ x: topRightCupX, y: topRightCupY, rotate: 0, ctx });
 
-    const bottomX = (canvasWidth - cupBottomWidth) / 2;
-    const bottomY = (canvasHeight / 5) * 3;
-
-    // const a = 50
-    const cup1 = drawCupPath({
-      x: topLeftX,
-      y: topLeftY,
-      height: cupHeight,
-      topWidth: cupTopWidth,
-      bottomWidth: cupBottomWidth,
-    });
-    const cup2 = drawCupPath({
-      x: topRightX,
-      y: topRightY,
-      height: cupHeight,
-      topWidth: cupTopWidth,
-      bottomWidth: cupBottomWidth,
-    });
-    const cup3 = drawCupPath({
-      x: bottomX,
-      y: bottomY,
-      height: cupHeight,
-      topWidth: cupTopWidth,
-      bottomWidth: cupBottomWidth,
-    });
-    ctx.fillStyle = '#FFA500';
-    ctx.fill(cup1);
-    ctx.fill(cup2);
-    ctx.fill(cup3);
+    const bottomCupX = (canvasWidth - cupBottomWidth) / 2;
+    const bottomCupY = (canvasHeight / 5) * 4;
+    drawCupSet({ x: bottomCupX, y: bottomCupY, rotate: 0, ctx });
   }
-
-  // function listenClickEventOnCanvasPath({
-  //   canvas,
-  //   ctx,
-  //   path,
-  //   callback,
-  // }: {
-  //   canvas: HTMLCanvasElement;
-  //   ctx: CanvasRenderingContext2D;
-  //   path: CanvasFillRule;
-  //   callback: (event: MouseEvent) => void;
-  // }) {
-  //   canvas.addEventListener('click', function (event: MouseEvent) {
-  //     if (ctx.isPointInPath(event.offsetX, event.offsetY, path)) {
-  //       callback(event);
-  //     }
-  //   });
-  // }
 
   useEffect(() => {
     const canvas = gameCanvas.current;
@@ -160,10 +59,7 @@ export default function CupGameCanvas() {
 
     updateCanvasSize({ canvas, ctx });
 
-    ctx.fillStyle = '#FBFBF4';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    draw({ ctx });
+    drawEverything({ ctx });
   }, [gameCanvas.current, canvasSize]);
 
   return (
@@ -175,3 +71,4 @@ export default function CupGameCanvas() {
     </div>
   );
 }
+

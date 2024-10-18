@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import type { ReactNode } from 'react';
+import { useState, useEffect } from 'react';
+import type { HTMLAttributes } from 'react';
 import { cn } from '../cn';
 import CupGameCanvas from './CupGameCanvas';
+
+type ButtonProps = HTMLAttributes<HTMLButtonElement>;
 
 function theWorstFunction() {
   alert("Okay, I won't try to use cookies (wink).");
@@ -79,7 +81,7 @@ function MiniGameModal({ isShowing = false, closeModal = () => {} }) {
       <div className="bg-white/50 backdrop-blur w-full h-full flex items-center justify-center">
         {/* content */}
         <div className="w-full max-w-[800px] p-2 md:p-8">
-          {modalStep === 0 && <MoalBodyBeforeGame nextStep={nextStep} />}
+          {modalStep === 0 && <ModalBodyBeforeGame nextStep={nextStep} />}
           {modalStep === 1 && <ModalBodyGame />}
         </div>
         {modalStep > 0 && (
@@ -100,7 +102,7 @@ function MiniGameModal({ isShowing = false, closeModal = () => {} }) {
   );
 }
 
-function MoalBodyBeforeGame({ nextStep = () => {} }) {
+function ModalBodyBeforeGame({ nextStep = () => {} }) {
   const defaultOkButtonWidth = 120;
   const [okButtonWidth, setOkButtonWidth] = useState(defaultOkButtonWidth);
 
@@ -170,7 +172,11 @@ function Button({ children, className, ...props }: ButtonProps) {
   );
 }
 
-function BlueButton({ children, className, ...props }: ButtonProps) {
+function BlueButton({
+  children,
+  className,
+  ...props
+}: HTMLAttributes<HTMLButtonElement>) {
   return (
     <Button
       {...props}
@@ -184,7 +190,11 @@ function BlueButton({ children, className, ...props }: ButtonProps) {
   );
 }
 
-function GrayButton({ children, className, ...props }: ButtonProps) {
+function GrayButton({
+  children,
+  className,
+  ...props
+}: HTMLAttributes<HTMLButtonElement>) {
   return (
     <Button
       {...props}
@@ -198,9 +208,5 @@ function GrayButton({ children, className, ...props }: ButtonProps) {
   );
 }
 
-type ButtonProps = {
-  children: ReactNode;
-  [p: keyof any]: any;
-};
-
 export default MovingCookieConsentBanner;
+
