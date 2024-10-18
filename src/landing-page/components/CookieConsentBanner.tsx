@@ -80,12 +80,18 @@ function MiniGameModal({ isShowing = false, closeModal = () => {} }) {
       {/* backdrop */}
       <div className="bg-white/50 backdrop-blur w-full h-full flex items-center justify-center">
         {/* content */}
-        <div className="w-full max-w-[800px] p-2 md:p-8">
-          {modalStep === 0 && <ModalBodyBeforeGame nextStep={nextStep} />}
-          {modalStep === 1 && <ModalBodyGame />}
-        </div>
+        {modalStep === 0 && (
+          <div className="w-full max-w-[800px] md:p-8">
+            <ModalBodyBeforeGame nextStep={nextStep} />
+          </div>
+        )}
+        {modalStep === 1 && (
+          <div className="w-full">
+            <CupGameCanvas />
+          </div>
+        )}
         {modalStep > 0 && (
-          <div className="absolute w-full right-0 bottom-0 flex items-center justify-center gap-2 bg-white/50 p-3">
+          <div className="absolute w-full right-0 bottom-0 flex items-center justify-center gap-2 bg-white/50 p-3 border-t border-t-gray-200">
             <p>
               you can end this test at any time and agree to let us use Cookies.
             </p>
@@ -151,15 +157,6 @@ function ModalBodyBeforeGame({ nextStep = () => {} }) {
           </BlueButton>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function ModalBodyGame() {
-  return (
-    <div className="w-full">
-      <h2>Hey</h2>
-      <CupGameCanvas />
     </div>
   );
 }
