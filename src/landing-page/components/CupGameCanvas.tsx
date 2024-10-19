@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import SetupDrawingCupSet from './cupGame/DrawCupSet';
+import GameInfoPanel from './cupGame/GameInfoPanel';
 import useElementSize from '@/lib/useElementSize';
 
 type DrawEverythingArg = {
@@ -179,7 +180,7 @@ export default function CupGameCanvas() {
 
   initCupState();
 
-  moveCupSeveralTimes(5);
+  moveCupSeveralTimes(0);
 
   useEffect(() => {
     const canvas = gameCanvas.current;
@@ -192,7 +193,11 @@ export default function CupGameCanvas() {
   }, [gameCanvas.current, canvasSize]);
 
   return (
-    <div>
+    <div className="relative">
+      <div className="absolute top-0 left-0 w-full p-4 flex items-center">
+        <GameInfoPanel />
+      </div>
+      {/* <p className="text-center text-2xl font-bold">Find the ball</p> */}
       <div ref={setCanvasRef} className="w-full">
         <canvas ref={gameCanvas} className="w-full h-screen object-contain" />
       </div>
