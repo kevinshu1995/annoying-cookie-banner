@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import type { HTMLAttributes } from 'react';
 import { cn } from '../cn';
 import CupGameCanvas from './CupGameCanvas';
-
-type ButtonProps = HTMLAttributes<HTMLButtonElement>;
+import { Button, BlueButton, GrayButton } from './Button';
 
 function theWorstFunction() {
   alert("Okay, I won't try to use cookies (wink).");
@@ -61,6 +59,7 @@ const MovingCookieConsentBanner = () => {
 function MiniGameModal({ isShowing = false, closeModal = () => {} }) {
   const [modalStep, setModalStep] = useState(0);
   const nextStep = () => setModalStep(modalStep + 1);
+
   useEffect(() => {
     setModalStep(0);
   }, [isShowing]);
@@ -158,50 +157,6 @@ function ModalBodyBeforeGame({ nextStep = () => {} }) {
         </div>
       </footer>
     </div>
-  );
-}
-
-function Button({ children, className, ...props }: ButtonProps) {
-  return (
-    <button {...props} className={cn('transition-all rounded', className)}>
-      {children}
-    </button>
-  );
-}
-
-function BlueButton({
-  children,
-  className,
-  ...props
-}: HTMLAttributes<HTMLButtonElement>) {
-  return (
-    <Button
-      {...props}
-      className={cn(
-        'bg-blue-500 hover:bg-blue-600 text-white border border-blue-500',
-        className
-      )}
-    >
-      {children}
-    </Button>
-  );
-}
-
-function GrayButton({
-  children,
-  className,
-  ...props
-}: HTMLAttributes<HTMLButtonElement>) {
-  return (
-    <Button
-      {...props}
-      className={cn(
-        'bg-white text-gray-400 hover:text-gray-500 border border-gray-400',
-        className
-      )}
-    >
-      {children}
-    </Button>
   );
 }
 
