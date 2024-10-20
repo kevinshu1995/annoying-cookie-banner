@@ -2,10 +2,7 @@ const defaultTheme = require('tailwindcss/defaultTheme');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
@@ -220,7 +217,8 @@ module.exports = {
         default: '0px 8px 13px -3px rgba(0, 0, 0, 0.07)',
         card: '0px 1px 3px rgba(0, 0, 0, 0.12)',
         'card-2': '0px 1px 2px rgba(0, 0, 0, 0.05)',
-        switcher: '0px 2px 4px rgba(0, 0, 0, 0.2), inset 0px 2px 2px #FFFFFF, inset 0px -1px 1px rgba(0, 0, 0, 0.1)',
+        switcher:
+          '0px 2px 4px rgba(0, 0, 0, 0.2), inset 0px 2px 2px #FFFFFF, inset 0px -1px 1px rgba(0, 0, 0, 0.1)',
         'switch-1': '0px 0px 5px rgba(0, 0, 0, 0.15)',
         1: '0px 1px 3px rgba(0, 0, 0, 0.08)',
         2: '0px 1px 4px rgba(0, 0, 0, 0.12)',
@@ -240,6 +238,10 @@ module.exports = {
           '0%, 100%': { transform: 'rotate(360deg)' },
           '50%': { transform: 'rotate(0deg)' },
         },
+        fadeIn: {
+          from: { opacity: 0 },
+          to: { opacity: 1 },
+        },
       },
       animation: {
         'ping-once': 'ping 5s cubic-bezier(0, 0, 0.2, 1)',
@@ -250,5 +252,6 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')]
+  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
 };
+
