@@ -1,3 +1,5 @@
+import useCheater from '@/lib/useCheater';
+
 type SetupDrawingCupArg = {
   cupHeight: number;
   cupTopWidth: number;
@@ -10,6 +12,7 @@ type DrawCupSetArg = {
   rotate: number;
   ctx: CanvasRenderingContext2D;
   hasBall?: boolean;
+  log?: boolean;
 };
 type DrawPathArg = {
   x: number;
@@ -34,6 +37,7 @@ export default function SetupDrawingCupSet({
   cupBottomWidth,
   cupShadowHeight,
 }: SetupDrawingCupArg) {
+  const { isCheaterModeActivate } = useCheater();
   const widthDifference = Math.abs(cupBottomWidth - cupTopWidth);
   const cupBezierCurve = 10;
   const ballWidth = 20;
@@ -46,7 +50,7 @@ export default function SetupDrawingCupSet({
     max: 0.4,
   };
 
-  const drawCupSet = ({ x, y, ctx, rotate, hasBall }: DrawCupSetArg) => {
+  const drawCupSet = ({ x, y, ctx, rotate, hasBall, log }: DrawCupSetArg) => {
     ctx.save();
 
     const fixedRotate =
@@ -56,9 +60,23 @@ export default function SetupDrawingCupSet({
     const hasRotate = rotate !== 0;
     const [cupX, cupY] = hasRotate ? [0, 0] : [x, y];
 
+    if (log) {
+      console.log('drawCupSet', {
+        x,
+        y,
+        rotate,
+        hasRotate,
+        cupX,
+        cupY,
+        angle: (Math.PI / 180) * fixedRotate,
+      });
+    }
+
     // draw ball shadow
     if (hasBall) {
       drawBallShadowPath({ x, y, ctx, color: 'gray' });
+      ctx.restore();
+      ctx.save();
     }
 
     // draw cup shadow
@@ -98,16 +116,23 @@ export default function SetupDrawingCupSet({
       ctx,
     });
     ctx.restore();
+    ctx.save();
 
     // draw ball
     if (hasBall) {
       drawBallPath({ x, y, ctx, color: '#dc2626' });
+      ctx.restore();
+      ctx.save();
     }
 
     // draw cup
     if (hasRotate) {
       ctx.translate(x, y);
       ctx.rotate((Math.PI / 180) * fixedRotate);
+    }
+    // cheat mode
+    if (isCheaterModeActivate('transparent')) {
+      ctx.globalAlpha = 0.3;
     }
     drawCupPath({
       x: cupX,
@@ -116,14 +141,13 @@ export default function SetupDrawingCupSet({
       color: '#FFA500',
       ctx,
     });
-
     ctx.restore();
+    ctx.save();
 
     return {};
   };
 
   const drawBallShadowPath = ({ x, y, ctx, color }: DrawBallPathArg) => {
-    ctx.save();
     ctx.beginPath();
     ctx.ellipse(
       x + cupBottomWidth / 2,
@@ -138,7 +162,6 @@ export default function SetupDrawingCupSet({
     ctx.fillStyle = color;
     ctx.fill();
     ctx.closePath();
-    ctx.restore();
   };
 
   const drawBallPath = ({ x, y, ctx, color }: DrawBallPathArg) => {

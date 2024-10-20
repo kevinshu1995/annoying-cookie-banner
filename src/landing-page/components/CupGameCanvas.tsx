@@ -1,14 +1,17 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import SetupDrawingCupSet from './cupGame/DrawCupSet';
 import GameInfoPanel from './cupGame/GameInfoPanel';
 import useElementSize from '@/lib/useElementSize';
-import WelcomeMessagePanel from './cupGame/WelcomeMessagePanel';
 import { GameMessageLayer, useGameMessage } from './cupGame/GameMessageLayer';
 
 type DrawEverythingArg = {
   ctx: CanvasRenderingContext2D;
   canvas: HTMLCanvasElement;
 };
+
+function hold(time: number) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
 
 function CupGameCanvas() {
   const gameCanvas = useRef<HTMLCanvasElement>(null);
@@ -17,14 +20,12 @@ function CupGameCanvas() {
   const cupTopWidth = 80;
   const cupBottomWidth = 100;
 
-  const [showGlobalMessage, setShowGlobalMessage] = useState(true);
-
   const { gameState, setGameState } = useGameMessage();
 
   const cupCurrentPosition = {
     cup1: { x: 0, y: 0 },
     cup2: { x: 0, y: 0 },
-    cup3: { x: 0, y: 0 },
+    cup3: { x: 0, y: 0, rotate: 0 },
   };
 
   function getCupPositions() {
@@ -42,6 +43,7 @@ function CupGameCanvas() {
         bottom: {
           x: 0,
           y: 0,
+          rotate: 0,
         },
       };
     }
@@ -57,6 +59,7 @@ function CupGameCanvas() {
       bottom: {
         x: (canvasWidth - cupBottomWidth) / 2,
         y: (canvasHeight / 5) * 4,
+        rotate: 0,
       },
     };
   }
@@ -69,22 +72,20 @@ function CupGameCanvas() {
       cup2.x === 0 &&
       cup2.y === 0 &&
       cup3.x === 0 &&
-      cup3.y === 0;
+      cup3.y === 0 &&
+      cup3.rotate === 0;
     if (hasNotInit === false) return;
     const initCupsPosition = getCupPositions();
 
-    cupCurrentPosition.cup1 = {
-      x: initCupsPosition.topLeft.x,
-      y: initCupsPosition.topLeft.y,
-    };
-    cupCurrentPosition.cup2 = {
-      x: initCupsPosition.topRight.x,
-      y: initCupsPosition.topRight.y,
-    };
-    cupCurrentPosition.cup3 = {
-      x: initCupsPosition.bottom.x,
-      y: initCupsPosition.bottom.y,
-    };
+    cupCurrentPosition.cup1.x = initCupsPosition.topLeft.x;
+    cupCurrentPosition.cup1.y = initCupsPosition.topLeft.y;
+
+    cupCurrentPosition.cup2.x = initCupsPosition.topRight.x;
+    cupCurrentPosition.cup2.y = initCupsPosition.topRight.y;
+
+    cupCurrentPosition.cup3.x = initCupsPosition.bottom.x;
+    cupCurrentPosition.cup3.y = initCupsPosition.bottom.y;
+    cupCurrentPosition.cup3.rotate = initCupsPosition.bottom.rotate;
   }
 
   function updateCanvasSize({
@@ -102,6 +103,7 @@ function CupGameCanvas() {
   }
 
   function drawEverything({ ctx, canvas }: DrawEverythingArg) {
+    console.log('drawEverything rotate', cupCurrentPosition.cup3.rotate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     // background color
@@ -134,15 +136,17 @@ function CupGameCanvas() {
     drawCupSet({
       x: cupCurrentPosition.cup3.x,
       y: cupCurrentPosition.cup3.y,
-      rotate: 0,
+      rotate: cupCurrentPosition.cup3.rotate,
       ctx,
       hasBall: true,
+      log: true,
     });
   }
 
   function moveCup(
     cupA: 'cup1' | 'cup2' | 'cup3',
-    cupB: 'cup1' | 'cup2' | 'cup3'
+    cupB: 'cup1' | 'cup2' | 'cup3',
+    speed?: number
   ) {
     return new Promise<void>(resolve => {
       let startTime: number;
@@ -157,7 +161,7 @@ function CupGameCanvas() {
 
         if (!startTime) startTime = time;
         const timeElapsed = time - startTime;
-        const duration = 300; // 動畫持續時間，以毫秒為單位
+        const duration = speed ?? 400; // 動畫持續時間，以毫秒為單位
         const fraction = Math.min(timeElapsed / duration, 1);
 
         // 計算新位置
@@ -179,6 +183,46 @@ function CupGameCanvas() {
         cupCurrentPosition[cupA].y = newCupAY;
         cupCurrentPosition[cupB].x = newCupBX;
         cupCurrentPosition[cupB].y = newCupBY;
+        drawEverything({ ctx, canvas });
+
+        if (fraction === 1) {
+          resolve();
+        } else {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    });
+  }
+
+  function toggleDisplayTheBall() {
+    initCupState();
+    return new Promise<void>(resolve => {
+      let startTime: number;
+      const beforeRotateDegree = cupCurrentPosition.cup3.rotate;
+      const targetRotateDegree = beforeRotateDegree === 0 ? 60 : 0;
+
+      function animate(time: number) {
+        const canvas = gameCanvas.current;
+        if (canvas === null || !canvas.getContext) return;
+        const ctx = canvas.getContext('2d');
+        if (ctx === null) return;
+
+        if (!startTime) startTime = time;
+        const timeElapsed = time - startTime;
+        const duration = 300; // 動畫持續時間，以毫秒為單位
+        const fraction = Math.min(
+          Math.round((timeElapsed / duration) * 100) / 100,
+          1
+        );
+
+        // 計算新位置
+        const newRotate =
+          beforeRotateDegree +
+          (targetRotateDegree - beforeRotateDegree) * fraction;
+
+        cupCurrentPosition.cup3.rotate = Math.round(newRotate * 100) / 100;
         drawEverything({ ctx, canvas });
 
         if (fraction === 1) {
@@ -224,20 +268,23 @@ function CupGameCanvas() {
     drawEverything({ ctx, canvas });
   }, [gameCanvas.current, canvasSize]);
 
-  // Step 2 - while the welcome message is closed, start the game
-  useEffect(() => {
-    if (showGlobalMessage === false) {
-      setGameState('countdown');
-    }
-  }, [showGlobalMessage]);
-
+  // Step 3 - game flow start
   useEffect(() => {
     if (gameState === 'countdown') {
       // reset game states
+      return;
+    }
 
-      setTimeout(() => {
-        setGameState('gameOver');
-      }, 10000);
+    if (gameState === 'gameStart') {
+      // game start
+      (async () => {
+        await toggleDisplayTheBall();
+        await hold(1500);
+        await toggleDisplayTheBall();
+        await hold(1000);
+        await moveCupSeveralTimes(10);
+        // await toggleDisplayTheBall();
+      })();
     }
   }, [gameState]);
 
@@ -246,9 +293,6 @@ function CupGameCanvas() {
       <div className="absolute top-0 left-0 w-full p-4 flex items-center">
         <GameInfoPanel />
       </div>
-      {showGlobalMessage && (
-        <WelcomeMessagePanel closePanel={() => setShowGlobalMessage(false)} />
-      )}
       <GameMessageLayer state={gameState} setState={setGameState} />
       <div ref={setCanvasRef} className="w-full">
         <canvas ref={gameCanvas} className="w-full h-screen object-contain" />
