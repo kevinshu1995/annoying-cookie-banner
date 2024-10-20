@@ -3,6 +3,7 @@ import SetupDrawingCupSet from './cupGame/DrawCupSet';
 import GameInfoPanel from './cupGame/GameInfoPanel';
 import useElementSize from '@/lib/useElementSize';
 import WelcomeMessagePanel from './cupGame/WelcomeMessagePanel';
+import { GameMessageLayer, useGameMessage } from './cupGame/GameMessageLayer';
 
 type DrawEverythingArg = {
   ctx: CanvasRenderingContext2D;
@@ -17,6 +18,8 @@ function CupGameCanvas() {
   const cupBottomWidth = 100;
 
   const [showGlobalMessage, setShowGlobalMessage] = useState(true);
+
+  const { gameState, setGameState } = useGameMessage();
 
   const cupCurrentPosition = {
     cup1: { x: 0, y: 0 },
@@ -224,9 +227,19 @@ function CupGameCanvas() {
   // Step 2 - while the welcome message is closed, start the game
   useEffect(() => {
     if (showGlobalMessage === false) {
-      moveCupSeveralTimes(3);
+      setGameState('countdown');
     }
   }, [showGlobalMessage]);
+
+  useEffect(() => {
+    if (gameState === 'countdown') {
+      // reset game states
+
+      setTimeout(() => {
+        setGameState('gameOver');
+      }, 10000);
+    }
+  }, [gameState]);
 
   return (
     <div className="relative">
@@ -236,6 +249,7 @@ function CupGameCanvas() {
       {showGlobalMessage && (
         <WelcomeMessagePanel closePanel={() => setShowGlobalMessage(false)} />
       )}
+      <GameMessageLayer state={gameState} setState={setGameState} />
       <div ref={setCanvasRef} className="w-full">
         <canvas ref={gameCanvas} className="w-full h-screen object-contain" />
       </div>

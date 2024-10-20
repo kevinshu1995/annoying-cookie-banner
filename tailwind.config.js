@@ -242,6 +242,10 @@ module.exports = {
           from: { opacity: 0 },
           to: { opacity: 1 },
         },
+        spinShrinkFadeIn: {
+          from: { transform: 'scale(2) rotate(360deg)', opacity: 0 },
+          to: { transform: 'scale(1) rotate(0deg)', opacity: 1 },
+        },
       },
       animation: {
         'ping-once': 'ping 5s cubic-bezier(0, 0, 0.2, 1)',
@@ -249,6 +253,7 @@ module.exports = {
         'spin-1.5': 'spin 1.5s linear infinite',
         'spin-2': 'spin 2s linear infinite',
         'spin-3': 'spin 3s linear infinite',
+        'spin-shrink-fade-in': 'spinShrinkFadeIn 0.3s ease-in-out both',
       },
     },
   },
