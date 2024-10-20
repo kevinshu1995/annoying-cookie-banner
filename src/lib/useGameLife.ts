@@ -1,6 +1,14 @@
 import { useState } from 'react';
 
-const useGameLife = ({ maxLife }: { maxLife: number }) => {
+export interface GameLife {
+  addLife: () => boolean;
+  minusLife: () => boolean;
+  resetLife: () => void;
+  life: number;
+  heartStates: boolean[];
+}
+
+const useGameLife = ({ maxLife }: { maxLife: number }): GameLife => {
   const [life, setLife] = useState(maxLife);
   const heartStates = [...Array(maxLife)].map((_, index) => index + 1 <= life);
 

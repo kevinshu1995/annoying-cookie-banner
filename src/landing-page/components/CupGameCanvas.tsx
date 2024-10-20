@@ -3,6 +3,7 @@ import SetupDrawingCupSet from './cupGame/DrawCupSet';
 import GameInfoPanel from './cupGame/GameInfoPanel';
 import useElementSize from '@/lib/useElementSize';
 import { GameMessageLayer, useGameMessage } from './cupGame/GameMessageLayer';
+import { GamePlayProvider, useGamePlay } from './context/GamePlayProvider';
 
 type DrawEverythingArg = {
   ctx: CanvasRenderingContext2D;
@@ -19,6 +20,8 @@ function CupGameCanvas() {
   const cupHeight = 120;
   const cupTopWidth = 80;
   const cupBottomWidth = 100;
+
+  const { startCountdown: startRoundCountdown } = useGamePlay();
 
   const { gameState, setGameState } = useGameMessage();
 
@@ -277,10 +280,11 @@ function CupGameCanvas() {
       // game start
       (async () => {
         await toggleDisplayTheBall();
-        await hold(1500);
+        await hold(100);
         await toggleDisplayTheBall();
-        await hold(1000);
-        await moveCupSeveralTimes(10, 400);
+        await hold(100);
+        await moveCupSeveralTimes(1, 100);
+        startRoundCountdown(10);
         // await toggleDisplayTheBall();
       })();
     }
@@ -288,9 +292,7 @@ function CupGameCanvas() {
 
   return (
     <div className="relative">
-      <div className="absolute top-0 left-0 w-full p-4 flex items-center">
-        <GameInfoPanel />
-      </div>
+      <GameInfoPanel />
       <GameMessageLayer state={gameState} setState={setGameState} />
       <div ref={setCanvasRef} className="w-full">
         <canvas ref={gameCanvas} className="w-full h-screen object-contain" />
@@ -302,7 +304,9 @@ function CupGameCanvas() {
 export const GameFrame = () => {
   return (
     <>
-      <CupGameCanvas />
+      <GamePlayProvider>
+        <CupGameCanvas />
+      </GamePlayProvider>
     </>
   );
 };
