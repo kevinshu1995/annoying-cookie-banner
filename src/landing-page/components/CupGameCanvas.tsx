@@ -103,7 +103,6 @@ function CupGameCanvas() {
   }
 
   function drawEverything({ ctx, canvas }: DrawEverythingArg) {
-    console.log('drawEverything rotate', cupCurrentPosition.cup3.rotate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     // background color
@@ -139,7 +138,6 @@ function CupGameCanvas() {
       rotate: cupCurrentPosition.cup3.rotate,
       ctx,
       hasBall: true,
-      log: true,
     });
   }
 

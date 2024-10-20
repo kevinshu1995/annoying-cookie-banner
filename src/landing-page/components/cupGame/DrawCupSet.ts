@@ -12,7 +12,6 @@ type DrawCupSetArg = {
   rotate: number;
   ctx: CanvasRenderingContext2D;
   hasBall?: boolean;
-  log?: boolean;
 };
 type DrawPathArg = {
   x: number;
@@ -50,7 +49,7 @@ export default function SetupDrawingCupSet({
     max: 0.4,
   };
 
-  const drawCupSet = ({ x, y, ctx, rotate, hasBall, log }: DrawCupSetArg) => {
+  const drawCupSet = ({ x, y, ctx, rotate, hasBall }: DrawCupSetArg) => {
     ctx.save();
 
     const fixedRotate =
@@ -59,18 +58,6 @@ export default function SetupDrawingCupSet({
       (Math.abs(fixedRotate) - rotateSettings.min) / 60;
     const hasRotate = rotate !== 0;
     const [cupX, cupY] = hasRotate ? [0, 0] : [x, y];
-
-    if (log) {
-      console.log('drawCupSet', {
-        x,
-        y,
-        rotate,
-        hasRotate,
-        cupX,
-        cupY,
-        angle: (Math.PI / 180) * fixedRotate,
-      });
-    }
 
     // draw ball shadow
     if (hasBall) {
