@@ -236,7 +236,7 @@ function CupGameCanvas() {
     });
   }
 
-  async function moveCupSeveralTimes(times: number) {
+  async function moveCupSeveralTimes(times: number, speed?: number) {
     initCupState();
     async function move(times: number) {
       type CupTag = 'cup1' | 'cup2' | 'cup3';
@@ -249,7 +249,7 @@ function CupGameCanvas() {
       };
       const [firstCup, secondCup] = randomTowCups(allCups);
       if (times === 0) return;
-      await moveCup(firstCup, secondCup);
+      await moveCup(firstCup, secondCup, speed);
       await move(times - 1);
     }
     await move(times);
@@ -282,7 +282,7 @@ function CupGameCanvas() {
         await hold(1500);
         await toggleDisplayTheBall();
         await hold(1000);
-        await moveCupSeveralTimes(10);
+        await moveCupSeveralTimes(10, 400);
         // await toggleDisplayTheBall();
       })();
     }
