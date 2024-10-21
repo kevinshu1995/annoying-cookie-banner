@@ -442,6 +442,7 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
     cupCurrentPosition.cup2.isHovered = false;
     cupCurrentPosition.cup3.isHovered = false;
     isCanvasInteractive = false;
+    setGameRoundInfoText('');
     await toggleDisplayTheBall(true);
     await hold(1000);
     await toggleDisplayTheBall(false);
@@ -465,6 +466,9 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
     } else {
       setGameRoundInfoText('Come on, you can do better than that!');
     }
+
+    await hold(1000);
+    setGameRoundInfoText('');
 
     if (userWin === false) {
       minusLife();

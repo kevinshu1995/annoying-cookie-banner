@@ -55,6 +55,27 @@ const gameOverMessages = [
   'Tough cookies!',
 ];
 
+const losingRoundMessages = [
+  'Oops! This round slipped away!',
+  "Not quite! The ball's still at large.",
+  'Close call! But no cigar this time.',
+  'Whoops! Did the ball outsmart you this time?',
+  'Looks like someone needs to work on their ball-spotting skills!',
+  'Oh dear, was that ball too sneaky for you?',
+];
+
+const winningRoundMessages = [
+  "Hmph, not bad... I guess you're not completely hopeless after all.",
+  'Oh? You actually won? I didn’t see that coming... Just lucky, I suppose.',
+  'Wow, impressive... for a mere mortal.',
+  "Pfft, that was just beginner's luck. Don’t get too comfortable!",
+  "Congratulations, I suppose... but don't think you’ve mastered this yet.",
+  'Heh, you got it right... but it’s not like I was trying, anyway.',
+  'Hmm, not bad at all. I guess you’re worth a second look… for now.',
+  'So you won... big deal. Let’s see if you can keep it up.',
+  'Oh, you beat me? How quaint. I’m sure you’ll be bragging about this for a while.',
+];
+
 export const GameMessageLayer = ({
   state,
   setState,
@@ -102,6 +123,18 @@ export const GameMessageLayer = ({
   const randomGameOverMessage = useMemo(() => {
     return gameOverMessages[
       Math.floor(Math.random() * gameOverMessages.length)
+    ];
+  }, [state]);
+
+  const randomLosingRoundMessage = useMemo(() => {
+    return losingRoundMessages[
+      Math.floor(Math.random() * losingRoundMessages.length)
+    ];
+  }, [state]);
+
+  const randomWinningRoundMessage = useMemo(() => {
+    return winningRoundMessages[
+      Math.floor(Math.random() * winningRoundMessages.length)
     ];
   }, [state]);
 
@@ -156,17 +189,18 @@ export const GameMessageLayer = ({
             {/* between each round */}
             <div
               className={clsx(
-                'flex flex-col items-center justify-center gap-4',
+                'flex flex-col items-center justify-center gap-12',
                 ['losingRound', 'winningRound'].includes(state) === false &&
                   'hidden'
               )}
             >
               <h2
-                className={clsx('font-bold text-6xl sm:text-6xl text-gray-500')}
+                className={clsx('font-bold text-6xl sm:text-3xl text-gray-500')}
               >
-                {state === 'losingRound' ? 'Oops!' : 'Great Job!'}
+                {state === 'losingRound'
+                  ? randomLosingRoundMessage
+                  : randomWinningRoundMessage}
               </h2>
-              {/* <p className="text-lg"></p> */}
               <BlueButton
                 className="px-8 py-2 text-xl"
                 onClick={() => setState('countdown')}
