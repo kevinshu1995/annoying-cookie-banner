@@ -80,7 +80,7 @@ function MiniGameModal({ isShowing = false, closeModal = () => {} }) {
       <div className="bg-white/50 backdrop-blur w-full h-full flex items-center justify-center">
         {/* content */}
         {modalStep === 0 && (
-          <div className="w-full max-w-[800px] md:p-8">
+          <div className="w-full max-w-[800px] p-4 md:p-8">
             <ModalBodyBeforeGame nextStep={nextStep} />
           </div>
         )}
