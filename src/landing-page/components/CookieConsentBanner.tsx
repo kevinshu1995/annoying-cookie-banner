@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { cn } from '../cn';
-import CupGameCanvas from './CupGameCanvas';
+import CupGameCanvas from './cupGame/CupGameCanvas';
 import { Button, BlueButton, GrayButton } from './Button';
 
 function theWorstFunction() {

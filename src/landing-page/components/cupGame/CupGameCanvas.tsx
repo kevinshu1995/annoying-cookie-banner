@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react';
-import SetupDrawingCupSet from './cupGame/DrawCupSet';
-import GameInfoPanel from './cupGame/GameInfoPanel';
+import SetupDrawingCupSet from './DrawCupSet';
+import GameInfoPanel from './GameInfoPanel';
 import useElementSize from '@/lib/useElementSize';
-import { GameMessageLayer, useGameMessage } from './cupGame/GameMessageLayer';
-import { GamePlayProvider, useGamePlay } from './context/GamePlayProvider';
+import { GameMessageLayer, useGameMessage } from './GameMessageLayer';
+import { GamePlayProvider, useGamePlay } from '../context/GamePlayProvider';
 import useCheater from '@/lib/useCheater';
 
 type DrawEverythingArg = {
