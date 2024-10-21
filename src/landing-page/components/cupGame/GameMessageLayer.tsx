@@ -195,12 +195,18 @@ export const GameMessageLayer = ({
               )}
             >
               <h2
-                className={clsx('font-bold text-6xl sm:text-3xl text-gray-500')}
+                className={clsx(
+                  'text-center font-bold text-6xl sm:text-7xl',
+                  state === 'losingRound' ? 'text-red-500' : 'text-green-500'
+                )}
               >
+                {state === 'losingRound' ? 'Oops!' : 'OK!'}
+              </h2>
+              <p>
                 {state === 'losingRound'
                   ? randomLosingRoundMessage
                   : randomWinningRoundMessage}
-              </h2>
+              </p>
               <BlueButton
                 className="px-8 py-2 text-xl"
                 onClick={() => setState('countdown')}

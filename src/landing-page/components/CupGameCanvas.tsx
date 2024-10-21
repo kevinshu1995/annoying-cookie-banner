@@ -450,7 +450,7 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
     setGameRoundInfoText('Shuffling...');
     await moveCupSeveralTimes(shuffleCounts, speed);
     isCanvasInteractive = true;
-    await startRoundCountdown(3);
+    await startRoundCountdown(5);
     isCanvasInteractive = false;
     await toggleDisplayTheBall(true);
     const userWin = cupCurrentPosition.cup3.isClicked;
