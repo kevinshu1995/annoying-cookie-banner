@@ -216,7 +216,7 @@ export default function SetupDrawingCupSet({
       const light = '#f87171';
       const dark = '#b91c1c';
       ctx.strokeStyle = isDarkStroke ? dark : light;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 4;
       ctx.stroke(cup);
     }
 
