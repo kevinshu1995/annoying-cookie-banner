@@ -24,6 +24,8 @@ let cupPath1: Path2D | null = null;
 let cupPath2: Path2D | null = null;
 let cupPath3: Path2D | null = null;
 
+let isCanvasInteractive = false;
+
 function CupGameCanvas() {
   const gameCanvas = useRef<HTMLCanvasElement>(null);
   const { size: canvasSize, setRef: setCanvasRef } = useElementSize();
@@ -107,6 +109,15 @@ function CupGameCanvas() {
     cupCurrentPosition.cup3.rotate = initCupsPosition.bottom.rotate;
   }
 
+  function getCanvasInstance() {
+    const canvas = gameCanvas.current;
+    if (canvas === null || !canvas.getContext) return null;
+    const ctx = canvas.getContext('2d');
+    if (ctx === null) return null;
+
+    return { canvas, ctx };
+  }
+
   function updateCanvasSize({
     canvas,
     ctx,
@@ -180,10 +191,9 @@ function CupGameCanvas() {
       const cupBTarget = { ...cupCurrentPosition[cupA] };
 
       function animate(time: number) {
-        const canvas = gameCanvas.current;
-        if (canvas === null || !canvas.getContext) return;
-        const ctx = canvas.getContext('2d');
-        if (ctx === null) return;
+        const instance = getCanvasInstance();
+        if (instance === null) return;
+        const { canvas, ctx } = instance;
 
         if (!startTime) startTime = time;
         const timeElapsed = time - startTime;
@@ -230,10 +240,9 @@ function CupGameCanvas() {
       const targetRotateDegree = beforeRotateDegree === 0 ? 60 : 0;
 
       function animate(time: number) {
-        const canvas = gameCanvas.current;
-        if (canvas === null || !canvas.getContext) return;
-        const ctx = canvas.getContext('2d');
-        if (ctx === null) return;
+        const instance = getCanvasInstance();
+        if (instance === null) return;
+        const { canvas, ctx } = instance;
 
         if (!startTime) startTime = time;
         const timeElapsed = time - startTime;
@@ -282,19 +291,18 @@ function CupGameCanvas() {
   }
 
   const isPointInCup = (x: number, y: number, cupPath: Path2D) => {
-    const canvas = gameCanvas.current;
-    if (canvas === null || !canvas.getContext) return false;
-    const ctx = canvas.getContext('2d');
-    if (ctx === null) return false;
+    const instance = getCanvasInstance();
+    if (instance === null) return false;
+    const { ctx } = instance;
 
     return ctx.isPointInPath(cupPath, x, y);
   };
 
   function onCanvasClick(event: React.MouseEvent<HTMLCanvasElement>) {
-    const canvas = gameCanvas.current;
-    if (canvas === null || !canvas.getContext) return;
-    const ctx = canvas.getContext('2d');
-    if (ctx === null) return;
+    if (isCanvasInteractive === false) return;
+    const instance = getCanvasInstance();
+    if (instance === null) return;
+    const { canvas, ctx } = instance;
 
     if (cupPath1 === null || cupPath2 === null || cupPath3 === null) return;
 
@@ -310,10 +318,10 @@ function CupGameCanvas() {
   }
 
   function onCanvasMouseMove(event: React.MouseEvent<HTMLCanvasElement>) {
-    const canvas = gameCanvas.current;
-    if (canvas === null || !canvas.getContext) return;
-    const ctx = canvas.getContext('2d');
-    if (ctx === null) return;
+    if (isCanvasInteractive === false) return;
+    const instance = getCanvasInstance();
+    if (instance === null) return;
+    const { canvas, ctx } = instance;
 
     if (cupPath1 === null || cupPath2 === null || cupPath3 === null) return;
 
@@ -348,8 +356,9 @@ function CupGameCanvas() {
     drawEverything({ ctx, canvas });
   }, [gameCanvas.current, canvasSize]);
 
-  // Step 3 - game flow start
+  // Step 2 - game flow start
   useEffect(() => {
+    // right before the game start
     if (gameState === 'countdown') {
       // reset game states
       return;
@@ -358,12 +367,14 @@ function CupGameCanvas() {
     if (gameState === 'gameStart') {
       // game start
       (async () => {
+        isCanvasInteractive = false;
         await toggleDisplayTheBall();
         await hold(100);
         await toggleDisplayTheBall();
         await hold(100);
-        await moveCupSeveralTimes(1, 100);
+        await moveCupSeveralTimes(10, 400);
         startRoundCountdown(10);
+        isCanvasInteractive = true;
         // await toggleDisplayTheBall();
       })();
     }
