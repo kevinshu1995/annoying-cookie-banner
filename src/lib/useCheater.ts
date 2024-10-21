@@ -1,4 +1,4 @@
-type cheaterMode = 'transparent';
+type cheaterMode = 'transparent' | 'easyAF';
 
 export default function useCheater() {
   function isCheaterModeActivate(mode: cheaterMode) {

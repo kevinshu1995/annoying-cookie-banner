@@ -4,6 +4,7 @@ import GameInfoPanel from './cupGame/GameInfoPanel';
 import useElementSize from '@/lib/useElementSize';
 import { GameMessageLayer, useGameMessage } from './cupGame/GameMessageLayer';
 import { GamePlayProvider, useGamePlay } from './context/GamePlayProvider';
+import useCheater from '@/lib/useCheater';
 
 type DrawEverythingArg = {
   ctx: CanvasRenderingContext2D;
@@ -44,6 +45,8 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
     resetRound,
     addRound,
   } = useGamePlay();
+
+  const { isCheaterModeActivate } = useCheater();
 
   const { gameState, setGameState } = useGameMessage();
 
@@ -386,15 +389,32 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
     }
 
     if (gameState === 'gameStart') {
+      const easyMode = isCheaterModeActivate('easyAF');
+      const easyModeSpeed = 500;
+      const easyModeShuffleCounts = 1;
+      const gameConfigs = [
+        {
+          speed: easyMode ? easyModeSpeed : 400,
+          shuffleCounts: easyMode ? easyModeShuffleCounts : 5,
+        },
+        {
+          speed: easyMode ? easyModeSpeed : 300,
+          shuffleCounts: easyMode ? easyModeShuffleCounts : 10,
+        },
+        {
+          speed: easyMode ? easyModeSpeed : 200,
+          shuffleCounts: easyMode ? easyModeShuffleCounts : 15,
+        },
+        {
+          // crazy mode
+          speed: 100,
+          shuffleCounts: 15,
+        },
+      ];
       // game start
-      if (round === 1) {
-        roundFlow({ speed: 400, shuffleCounts: 5 });
-      }
-      if (round === 2) {
-        roundFlow({ speed: 300, shuffleCounts: 10 });
-      }
-      if (round === 3) {
-        roundFlow({ speed: 200, shuffleCounts: 15 });
+      if (round > 0 && round < 4) {
+        const { speed, shuffleCounts } = gameConfigs[round - 1];
+        roundFlow({ speed, shuffleCounts });
       }
     }
   }, [gameState]);
@@ -429,12 +449,9 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
     setGameRoundInfoText('Shuffling...');
     await moveCupSeveralTimes(shuffleCounts, speed);
     isCanvasInteractive = true;
-    // TODO reveal a message said "Find the ball"
     await startRoundCountdown(3);
-
     isCanvasInteractive = false;
     await toggleDisplayTheBall(true);
-    // TODO reveal a message said "You win!" or "You lose!"
     const userWin = cupCurrentPosition.cup3.isClicked;
     const userDidNotClick =
       cupCurrentPosition.cup1.isClicked === false &&
@@ -442,11 +459,11 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
       cupCurrentPosition.cup3.isClicked === false;
 
     if (userDidNotClick) {
-      setGameRoundInfoText('You did not click any cup...');
+      setGameRoundInfoText('You know you have to click, right?');
     } else if (userWin) {
-      setGameRoundInfoText('Nice!');
+      setGameRoundInfoText('OK');
     } else {
-      setGameRoundInfoText('Well...');
+      setGameRoundInfoText('Come on, you can do better than that!');
     }
 
     if (userWin === false) {
