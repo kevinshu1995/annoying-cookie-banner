@@ -8,10 +8,11 @@ const GameInfoPanel = () => {
     round,
     maxRound,
     countdown: roundCountdown,
+    gameRoundInfoText,
   } = useGamePlay();
 
   return (
-    <div className="absolute top-0 left-0 w-full p-4 flex items-center">
+    <div className="absolute top-0 left-0 w-full p-4 flex items-start">
       <div className="w-1/3">
         <p className="font-bold text-lg flex items-center gap-2">
           <span className="text-gray-800">ROUND</span>
@@ -21,11 +22,11 @@ const GameInfoPanel = () => {
         </p>
       </div>
       <div className="w-1/3">
-        <div className="flex w-full items-center justify-center">
+        <div className="flex flex-col w-full items-center justify-center">
           <span
             className={clsx(
               'relative text-4xl font-bold',
-              roundCountdown < 0 && 'opacity-0',
+              roundCountdown < 1 && 'opacity-0',
               roundCountdown <= 3 && 'text-red-500'
             )}
           >
@@ -33,12 +34,19 @@ const GameInfoPanel = () => {
             <span
               className={clsx(
                 'absolute left-0 top-0 text-4xl font-bold',
-                roundCountdown < 0 && 'opacity-0',
                 roundCountdown <= 3 && 'text-red-500 animate-ping'
               )}
             >
               {roundCountdown}
             </span>
+          </span>
+          <span
+            className={clsx(
+              'relative font-bold text-2xl animate-pulse h-8',
+              !gameRoundInfoText && 'opacity-0'
+            )}
+          >
+            {gameRoundInfoText}
           </span>
         </div>
       </div>

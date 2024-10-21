@@ -33,7 +33,12 @@ function CupGameCanvas() {
   const cupTopWidth = 80;
   const cupBottomWidth = 100;
 
-  const { startCountdown: startRoundCountdown } = useGamePlay();
+  const {
+    startCountdown: startRoundCountdown,
+    setGameRoundInfoText,
+    minusLife,
+    life,
+  } = useGamePlay();
 
   const { gameState, setGameState } = useGameMessage();
 
@@ -366,19 +371,59 @@ function CupGameCanvas() {
 
     if (gameState === 'gameStart') {
       // game start
-      (async () => {
-        isCanvasInteractive = false;
-        await toggleDisplayTheBall();
-        await hold(100);
-        await toggleDisplayTheBall();
-        await hold(100);
-        await moveCupSeveralTimes(10, 400);
-        startRoundCountdown(10);
-        isCanvasInteractive = true;
-        // await toggleDisplayTheBall();
-      })();
+      roundStart({ speed: 400, shuffleCounts: 5 });
     }
   }, [gameState]);
+
+  async function roundStart({
+    speed,
+    shuffleCounts,
+  }: {
+    speed: number;
+    shuffleCounts: number;
+  }) {
+    isCanvasInteractive = false;
+    await toggleDisplayTheBall();
+    await hold(100);
+    await toggleDisplayTheBall();
+    await hold(100);
+    setGameRoundInfoText('Shuffling...');
+    await moveCupSeveralTimes(shuffleCounts, speed);
+    isCanvasInteractive = true;
+    console.log('countdown start');
+    // TODO reveal a message said "Find the ball"
+    await startRoundCountdown(10);
+    console.log('countdown end');
+
+    isCanvasInteractive = false;
+    await toggleDisplayTheBall();
+    // TODO reveal a message said "You win!" or "You lose!"
+    const userWin = cupCurrentPosition.cup3.isClicked;
+    const userDidNotClick =
+      cupCurrentPosition.cup1.isClicked === false &&
+      cupCurrentPosition.cup2.isClicked === false &&
+      cupCurrentPosition.cup3.isClicked === false;
+
+    if (userDidNotClick) {
+      setGameRoundInfoText('You did not click any cup...');
+    } else if (userWin) {
+      setGameRoundInfoText('Nice!');
+    } else {
+      setGameRoundInfoText('Well...');
+    }
+
+    if (userWin === false) {
+      minusLife();
+      minusLife();
+      minusLife();
+      minusLife();
+    }
+
+    // TODO next round or game over
+    if (life === 0) {
+      setGameState('gameOver');
+    }
+  }
 
   return (
     <div className="relative">

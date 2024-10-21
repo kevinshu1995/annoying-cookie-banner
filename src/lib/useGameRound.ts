@@ -4,8 +4,10 @@ export interface GameRound {
   addRound: () => boolean;
   minusRound: () => boolean;
   resetRound: () => void;
-  startCountdown: (initialCountdown: number) => void;
+  startCountdown: (initialCountdown: number) => Promise<void>;
   setCountdown: (countdown: number) => void;
+  setGameRoundInfoText: (text: string) => void;
+  gameRoundInfoText: string;
   round: number;
   maxRound: number;
   countdown: number;
@@ -16,6 +18,7 @@ const useGameRound = ({ maxRound }: { maxRound: number }) => {
   const [round, setRound] = useState<GameRound['round']>(1);
   const [countdown, setCountdown] = useState<GameRound['countdown']>(0);
   const [isCountdownEnd, setIsCountdownEnd] = useState(false);
+  const [gameRoundInfoText, setGameRoundInfoText] = useState('');
 
   const addRound = () => {
     if (round < maxRound) {
@@ -38,18 +41,25 @@ const useGameRound = ({ maxRound }: { maxRound: number }) => {
   };
 
   const startCountdown = (initialCountdown: number) => {
-    setCountdown(initialCountdown);
-    setIsCountdownEnd(false);
-    const intervalId = setInterval(() => {
-      setCountdown(prevCountdown => {
-        if (prevCountdown < 0) {
-          clearInterval(intervalId);
-          setIsCountdownEnd(true);
-          return -1;
-        }
-        return prevCountdown - 1;
-      });
-    }, 1000);
+    return new Promise<void>(resolve => {
+      setCountdown(initialCountdown);
+      setIsCountdownEnd(false);
+      setGameRoundInfoText('Find the Ball');
+      const intervalId = setInterval(() => {
+        setCountdown(prevCountdown => {
+          if (prevCountdown < 0) {
+            clearInterval(intervalId);
+            setIsCountdownEnd(true);
+            resolve();
+            return -1;
+          }
+          if (prevCountdown === 1) {
+            setGameRoundInfoText("Time's up!");
+          }
+          return prevCountdown - 1;
+        });
+      }, 1000);
+    });
   };
 
   return {
@@ -58,6 +68,8 @@ const useGameRound = ({ maxRound }: { maxRound: number }) => {
     resetRound,
     startCountdown,
     setCountdown,
+    setGameRoundInfoText,
+    gameRoundInfoText,
     round,
     maxRound,
     countdown,

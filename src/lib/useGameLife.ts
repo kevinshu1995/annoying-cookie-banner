@@ -21,7 +21,7 @@ const useGameLife = ({ maxLife }: { maxLife: number }): GameLife => {
   };
 
   const minusLife = () => {
-    if (life > 0) {
+    if (life >= 0) {
       setLife(life - 1);
       return true;
     }
