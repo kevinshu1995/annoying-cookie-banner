@@ -12,6 +12,8 @@ type DrawCupSetArg = {
   rotate: number;
   ctx: CanvasRenderingContext2D;
   hasBall?: boolean;
+  isDarkStroke?: boolean;
+  isLightStroke?: boolean;
 };
 type DrawPathArg = {
   x: number;
@@ -19,6 +21,8 @@ type DrawPathArg = {
   height: number;
   ctx: CanvasRenderingContext2D;
   color: string;
+  isDarkStroke?: boolean;
+  isLightStroke?: boolean;
 };
 type DrawCupPathArg = DrawPathArg;
 type DrawCupShadowPathArg = DrawPathArg & { xOffset: number };
@@ -49,7 +53,15 @@ export default function SetupDrawingCupSet({
     max: 0.4,
   };
 
-  const drawCupSet = ({ x, y, ctx, rotate, hasBall }: DrawCupSetArg) => {
+  const drawCupSet = ({
+    x,
+    y,
+    ctx,
+    rotate,
+    hasBall,
+    isDarkStroke,
+    isLightStroke,
+  }: DrawCupSetArg) => {
     ctx.save();
 
     const fixedRotate =
@@ -121,17 +133,19 @@ export default function SetupDrawingCupSet({
     if (isCheaterModeActivate('transparent')) {
       ctx.globalAlpha = 0.3;
     }
-    drawCupPath({
+    const cupPath = drawCupPath({
       x: cupX,
       y: cupY,
       height: cupHeight,
       color: '#FFA500',
       ctx,
+      isDarkStroke,
+      isLightStroke,
     });
     ctx.restore();
     ctx.save();
 
-    return {};
+    return { cupPath };
   };
 
   const drawBallShadowPath = ({ x, y, ctx, color }: DrawBallPathArg) => {
@@ -159,7 +173,15 @@ export default function SetupDrawingCupSet({
     ctx.closePath();
   };
 
-  const drawCupPath = ({ x, y, height, ctx, color }: DrawCupPathArg) => {
+  const drawCupPath = ({
+    x,
+    y,
+    height,
+    ctx,
+    color,
+    isDarkStroke,
+    isLightStroke,
+  }: DrawCupPathArg) => {
     const cup = new Path2D();
     const [rightBottomX, rightBottomY] = [x + cupBottomWidth, y];
     const [rightTopX, rightTopY] = [
@@ -185,9 +207,19 @@ export default function SetupDrawingCupSet({
       leftTopX,
       leftTopY
     );
+    cup.lineTo(x, y);
 
     ctx.fillStyle = color;
     ctx.fill(cup);
+
+    if (isDarkStroke || isLightStroke) {
+      const light = '#f87171';
+      const dark = '#b91c1c';
+      ctx.strokeStyle = isDarkStroke ? dark : light;
+      ctx.lineWidth = 2;
+      ctx.stroke(cup);
+    }
+
     return cup;
   };
 

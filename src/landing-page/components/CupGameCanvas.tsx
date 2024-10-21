@@ -14,6 +14,16 @@ function hold(time: number) {
   return new Promise(resolve => setTimeout(resolve, time));
 }
 
+const cupCurrentPosition = {
+  cup1: { x: 0, y: 0, isHovered: false, isClicked: false },
+  cup2: { x: 0, y: 0, isHovered: false, isClicked: false },
+  cup3: { x: 0, y: 0, isHovered: false, isClicked: false, rotate: 0 },
+};
+
+let cupPath1: Path2D | null = null;
+let cupPath2: Path2D | null = null;
+let cupPath3: Path2D | null = null;
+
 function CupGameCanvas() {
   const gameCanvas = useRef<HTMLCanvasElement>(null);
   const { size: canvasSize, setRef: setCanvasRef } = useElementSize();
@@ -25,12 +35,6 @@ function CupGameCanvas() {
 
   const { gameState, setGameState } = useGameMessage();
 
-  const cupCurrentPosition = {
-    cup1: { x: 0, y: 0 },
-    cup2: { x: 0, y: 0 },
-    cup3: { x: 0, y: 0, rotate: 0 },
-  };
-
   function getCupPositions() {
     const [canvasWidth, canvasHeight] = canvasSize;
     if (canvasWidth === 0 || canvasHeight === 0) {
@@ -38,14 +42,20 @@ function CupGameCanvas() {
         topLeft: {
           x: 0,
           y: 0,
+          isHovered: false,
+          isClicked: false,
         },
         topRight: {
           x: 0,
           y: 0,
+          isHovered: false,
+          isClicked: false,
         },
         bottom: {
           x: 0,
           y: 0,
+          isHovered: false,
+          isClicked: false,
           rotate: 0,
         },
       };
@@ -54,14 +64,20 @@ function CupGameCanvas() {
       topLeft: {
         x: (canvasWidth / 7) * 2 - cupBottomWidth / 2,
         y: (canvasHeight / 5) * 2,
+        isHovered: false,
+        isClicked: false,
       },
       topRight: {
         x: (canvasWidth / 7) * 5 - cupBottomWidth / 2,
         y: (canvasHeight / 5) * 2,
+        isHovered: false,
+        isClicked: false,
       },
       bottom: {
         x: (canvasWidth - cupBottomWidth) / 2,
         y: (canvasHeight / 5) * 4,
+        isHovered: false,
+        isClicked: false,
         rotate: 0,
       },
     };
@@ -121,27 +137,36 @@ function CupGameCanvas() {
       cupShadowHeight: cupHeight / 3,
     });
 
-    drawCupSet({
+    const { cupPath: _cup1Path } = drawCupSet({
       x: cupCurrentPosition.cup1.x,
       y: cupCurrentPosition.cup1.y,
+      isLightStroke: cupCurrentPosition.cup1.isHovered,
+      isDarkStroke: cupCurrentPosition.cup1.isClicked,
       rotate: 0,
       ctx,
     });
+    cupPath1 = _cup1Path;
 
-    drawCupSet({
+    const { cupPath: _cup2Path } = drawCupSet({
       x: cupCurrentPosition.cup2.x,
       y: cupCurrentPosition.cup2.y,
+      isLightStroke: cupCurrentPosition.cup2.isHovered,
+      isDarkStroke: cupCurrentPosition.cup2.isClicked,
       rotate: 0,
       ctx,
     });
+    cupPath2 = _cup2Path;
 
-    drawCupSet({
+    const { cupPath: _cup3Path } = drawCupSet({
       x: cupCurrentPosition.cup3.x,
       y: cupCurrentPosition.cup3.y,
       rotate: cupCurrentPosition.cup3.rotate,
+      isLightStroke: cupCurrentPosition.cup3.isHovered,
+      isDarkStroke: cupCurrentPosition.cup3.isClicked,
       ctx,
       hasBall: true,
     });
+    cupPath3 = _cup3Path;
   }
 
   function moveCup(
@@ -256,6 +281,60 @@ function CupGameCanvas() {
     await move(times);
   }
 
+  const isPointInCup = (x: number, y: number, cupPath: Path2D) => {
+    const canvas = gameCanvas.current;
+    if (canvas === null || !canvas.getContext) return false;
+    const ctx = canvas.getContext('2d');
+    if (ctx === null) return false;
+
+    return ctx.isPointInPath(cupPath, x, y);
+  };
+
+  function onCanvasClick(event: React.MouseEvent<HTMLCanvasElement>) {
+    const canvas = gameCanvas.current;
+    if (canvas === null || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    if (ctx === null) return;
+
+    if (cupPath1 === null || cupPath2 === null || cupPath3 === null) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    cupCurrentPosition.cup1.isClicked = isPointInCup(x, y, cupPath1);
+    cupCurrentPosition.cup2.isClicked = isPointInCup(x, y, cupPath2);
+    cupCurrentPosition.cup3.isClicked = isPointInCup(x, y, cupPath3);
+
+    drawEverything({ ctx, canvas });
+  }
+
+  function onCanvasMouseMove(event: React.MouseEvent<HTMLCanvasElement>) {
+    const canvas = gameCanvas.current;
+    if (canvas === null || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    if (ctx === null) return;
+
+    if (cupPath1 === null || cupPath2 === null || cupPath3 === null) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const isCup1Hovered = isPointInCup(x, y, cupPath1);
+    const isCup2Hovered = isPointInCup(x, y, cupPath2);
+    const isCup3Hovered = isPointInCup(x, y, cupPath3);
+
+    cupCurrentPosition.cup1.isHovered =
+      cupCurrentPosition.cup1.isClicked === false && isCup1Hovered;
+    cupCurrentPosition.cup2.isHovered =
+      cupCurrentPosition.cup2.isClicked === false && isCup2Hovered;
+    cupCurrentPosition.cup3.isHovered =
+      cupCurrentPosition.cup3.isClicked === false && isCup3Hovered;
+
+    drawEverything({ ctx, canvas });
+  }
+
   // Step 1 - setup everything on canvas & the welcome message will be shown immediately
   useEffect(() => {
     const canvas = gameCanvas.current;
@@ -295,7 +374,12 @@ function CupGameCanvas() {
       <GameInfoPanel />
       <GameMessageLayer state={gameState} setState={setGameState} />
       <div ref={setCanvasRef} className="w-full">
-        <canvas ref={gameCanvas} className="w-full h-screen object-contain" />
+        <canvas
+          ref={gameCanvas}
+          className="w-full h-screen object-contain"
+          onClick={onCanvasClick}
+          onMouseMove={onCanvasMouseMove}
+        />
       </div>
     </div>
   );
