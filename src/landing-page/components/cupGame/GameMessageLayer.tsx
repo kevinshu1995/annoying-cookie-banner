@@ -7,7 +7,11 @@ type GameMessageState =
   | 'pause'
   | 'countdown'
   | 'gameOver'
-  | 'gameStart';
+  | 'gameStart'
+  | 'victory'
+  | 'winningRound'
+  | 'losingRound'
+  | 'resetGame';
 
 const useCountDownText = (startCountdown: boolean) => {
   const [countdownText, setCountdownText] = useState(3);
@@ -90,8 +94,14 @@ export const GameMessageLayer = ({
     <div
       className={clsx(
         'absolute w-full h-full left-0 top-0',
-        ['gameOver', 'countdown', 'welcome'].includes(state) === false &&
-          'hidden'
+        [
+          'gameOver',
+          'countdown',
+          'welcome',
+          'losingRound',
+          'winningRound',
+          'victory',
+        ].includes(state) === false && 'hidden'
       )}
     >
       {state === 'welcome' && (
@@ -100,6 +110,7 @@ export const GameMessageLayer = ({
       {state !== 'welcome' && (
         <div className="w-full h-full flex items-center justify-center bg-gray-900/30">
           <div className="bg-white py-16 px-2 shadow-xl w-full flex justify-center">
+            {/* countdown (game is ready to start) */}
             <h2
               className={clsx(
                 'font-bold text-4xl flex flex-col gap-8 items-center',
@@ -127,6 +138,28 @@ export const GameMessageLayer = ({
                 {isCountdownEnd ? gameStartText : countdownText}
               </span>
             </h2>
+            {/* between each round */}
+            <div
+              className={clsx(
+                'flex flex-col items-center justify-center gap-4',
+                ['losingRound', 'winningRound'].includes(state) === false &&
+                  'hidden'
+              )}
+            >
+              <h2
+                className={clsx('font-bold text-6xl sm:text-6xl text-gray-500')}
+              >
+                {state === 'losingRound' ? 'Oops!' : 'Great Job!'}
+              </h2>
+              {/* <p className="text-lg"></p> */}
+              <BlueButton
+                className="px-8 py-2 text-xl"
+                onClick={() => setState('countdown')}
+              >
+                Next Round
+              </BlueButton>
+            </div>
+            {/* game over */}
             <div
               className={clsx(
                 'flex flex-col items-center justify-center gap-4',
@@ -141,7 +174,33 @@ export const GameMessageLayer = ({
               <p className="text-lg">{randomGameOverMessage}</p>
               <BlueButton
                 className="px-8 py-2 text-xl"
-                onClick={() => setState('countdown')}
+                onClick={() => setState('resetGame')}
+              >
+                Try again?
+              </BlueButton>
+            </div>
+            {/* user win */}
+            <div
+              className={clsx(
+                'flex flex-col items-center justify-center gap-4',
+                state !== 'victory' && 'hidden'
+              )}
+            >
+              <h2
+                className={clsx(
+                  'font-bold text-6xl sm:text-9xl text-green-500'
+                )}
+              >
+                Great Job!
+              </h2>
+              <p className="text-lg">
+                Okay, I won't try to use cookies (wink).
+              </p>
+              {/* TODO countdown */}
+              <p>This game will be closed in xx seconds.</p>
+              <BlueButton
+                className="px-8 py-2 text-xl"
+                onClick={() => setState('resetGame')}
               >
                 Try again?
               </BlueButton>

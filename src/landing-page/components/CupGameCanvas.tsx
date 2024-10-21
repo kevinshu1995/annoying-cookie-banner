@@ -34,10 +34,15 @@ function CupGameCanvas() {
   const cupBottomWidth = 100;
 
   const {
+    life,
     startCountdown: startRoundCountdown,
     setGameRoundInfoText,
+    round,
+    maxRound,
     minusLife,
-    life,
+    resetLife,
+    resetRound,
+    addRound,
   } = useGamePlay();
 
   const { gameState, setGameState } = useGameMessage();
@@ -237,12 +242,20 @@ function CupGameCanvas() {
     });
   }
 
-  function toggleDisplayTheBall() {
+  function toggleDisplayTheBall(forceState: boolean) {
     initCupState();
     return new Promise<void>(resolve => {
       let startTime: number;
+      const cupRotateDegree = 60;
+
       const beforeRotateDegree = cupCurrentPosition.cup3.rotate;
-      const targetRotateDegree = beforeRotateDegree === 0 ? 60 : 0;
+      const targetRotateDegree = beforeRotateDegree === 0 ? cupRotateDegree : 0;
+
+      const isCupRotated = beforeRotateDegree === cupRotateDegree;
+      if (isCupRotated === forceState) {
+        resolve();
+        return;
+      }
 
       function animate(time: number) {
         const instance = getCanvasInstance();
@@ -364,39 +377,63 @@ function CupGameCanvas() {
   // Step 2 - game flow start
   useEffect(() => {
     // right before the game start
-    if (gameState === 'countdown') {
+    if (gameState === 'resetGame') {
       // reset game states
+      resetLife();
+      resetRound();
+      setGameState('countdown');
       return;
     }
 
     if (gameState === 'gameStart') {
       // game start
-      roundStart({ speed: 400, shuffleCounts: 5 });
+      if (round === 1) {
+        roundFlow({ speed: 500, shuffleCounts: 5 });
+      }
+      if (round === 2) {
+        roundFlow({ speed: 400, shuffleCounts: 8 });
+      }
+      if (round === 3) {
+        roundFlow({ speed: 300, shuffleCounts: 10 });
+      }
     }
   }, [gameState]);
 
-  async function roundStart({
+  useEffect(() => {
+    (async () => {
+      if (life === 0) {
+        await hold(500);
+        setGameState('gameOver');
+      }
+    })();
+  }, [life]);
+
+  async function roundFlow({
     speed,
     shuffleCounts,
   }: {
     speed: number;
     shuffleCounts: number;
   }) {
+    cupCurrentPosition.cup1.isClicked = false;
+    cupCurrentPosition.cup2.isClicked = false;
+    cupCurrentPosition.cup3.isClicked = false;
+    cupCurrentPosition.cup1.isHovered = false;
+    cupCurrentPosition.cup2.isHovered = false;
+    cupCurrentPosition.cup3.isHovered = false;
     isCanvasInteractive = false;
-    await toggleDisplayTheBall();
-    await hold(100);
-    await toggleDisplayTheBall();
+    await toggleDisplayTheBall(true);
+    await hold(1000);
+    await toggleDisplayTheBall(false);
     await hold(100);
     setGameRoundInfoText('Shuffling...');
     await moveCupSeveralTimes(shuffleCounts, speed);
     isCanvasInteractive = true;
-    console.log('countdown start');
     // TODO reveal a message said "Find the ball"
-    await startRoundCountdown(10);
-    console.log('countdown end');
+    await startRoundCountdown(3);
 
     isCanvasInteractive = false;
-    await toggleDisplayTheBall();
+    await toggleDisplayTheBall(true);
     // TODO reveal a message said "You win!" or "You lose!"
     const userWin = cupCurrentPosition.cup3.isClicked;
     const userDidNotClick =
@@ -414,14 +451,16 @@ function CupGameCanvas() {
 
     if (userWin === false) {
       minusLife();
-      minusLife();
-      minusLife();
-      minusLife();
-    }
-
-    // TODO next round or game over
-    if (life === 0) {
-      setGameState('gameOver');
+      if (life > 1) {
+        setGameState('losingRound');
+      }
+    } else {
+      if (round === maxRound) {
+        setGameState('victory');
+        return;
+      }
+      addRound();
+      setGameState('winningRound');
     }
   }
 

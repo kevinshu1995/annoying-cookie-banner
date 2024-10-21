@@ -14,8 +14,10 @@ export interface GameRound {
   isCountdownEnd: boolean;
 }
 
+const initRound = 1;
+
 const useGameRound = ({ maxRound }: { maxRound: number }) => {
-  const [round, setRound] = useState<GameRound['round']>(1);
+  const [round, setRound] = useState<GameRound['round']>(initRound);
   const [countdown, setCountdown] = useState<GameRound['countdown']>(0);
   const [isCountdownEnd, setIsCountdownEnd] = useState(false);
   const [gameRoundInfoText, setGameRoundInfoText] = useState('');
@@ -37,7 +39,7 @@ const useGameRound = ({ maxRound }: { maxRound: number }) => {
   };
 
   const resetRound = () => {
-    setRound(round);
+    setRound(initRound);
   };
 
   const startCountdown = (initialCountdown: number) => {
