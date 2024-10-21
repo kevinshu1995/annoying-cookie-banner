@@ -12,7 +12,7 @@ const GameInfoPanel = () => {
   } = useGamePlay();
 
   return (
-    <div className="absolute top-0 left-0 w-full p-4 flex items-start">
+    <div className="absolute top-0 left-0 w-full p-4 flex flex-wrap items-start">
       <div className="w-1/3">
         <p className="font-bold text-lg flex items-center gap-2">
           <span className="text-gray-800">ROUND</span>
@@ -40,14 +40,6 @@ const GameInfoPanel = () => {
               {roundCountdown}
             </span>
           </span>
-          <span
-            className={clsx(
-              'relative font-bold text-2xl animate-pulse h-8',
-              !gameRoundInfoText && 'opacity-0'
-            )}
-          >
-            {gameRoundInfoText}
-          </span>
         </div>
       </div>
       <div className="w-1/3">
@@ -56,6 +48,16 @@ const GameInfoPanel = () => {
             return <GameHeart isFilled={isFilled} key={index} />;
           })}
         </div>
+      </div>
+      <div className="w-full text-center">
+        <p
+          className={clsx(
+            'relative font-bold text-2xl animate-pulse h-8',
+            !gameRoundInfoText && 'opacity-0'
+          )}
+        >
+          {gameRoundInfoText}
+        </p>
       </div>
     </div>
   );
