@@ -388,13 +388,13 @@ function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
     if (gameState === 'gameStart') {
       // game start
       if (round === 1) {
-        roundFlow({ speed: 500, shuffleCounts: 5 });
+        roundFlow({ speed: 400, shuffleCounts: 5 });
       }
       if (round === 2) {
-        roundFlow({ speed: 400, shuffleCounts: 8 });
+        roundFlow({ speed: 300, shuffleCounts: 10 });
       }
       if (round === 3) {
-        roundFlow({ speed: 300, shuffleCounts: 10 });
+        roundFlow({ speed: 200, shuffleCounts: 15 });
       }
     }
   }, [gameState]);
