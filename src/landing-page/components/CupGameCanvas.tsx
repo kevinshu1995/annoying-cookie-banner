@@ -26,7 +26,7 @@ let cupPath3: Path2D | null = null;
 
 let isCanvasInteractive = false;
 
-function CupGameCanvas() {
+function CupGameCanvas({ closeModal }: { closeModal: () => void }) {
   const gameCanvas = useRef<HTMLCanvasElement>(null);
   const { size: canvasSize, setRef: setCanvasRef } = useElementSize();
   const cupHeight = 120;
@@ -467,7 +467,11 @@ function CupGameCanvas() {
   return (
     <div className="relative">
       <GameInfoPanel />
-      <GameMessageLayer state={gameState} setState={setGameState} />
+      <GameMessageLayer
+        state={gameState}
+        setState={setGameState}
+        closeModal={closeModal}
+      />
       <div ref={setCanvasRef} className="w-full">
         <canvas
           ref={gameCanvas}
@@ -480,11 +484,11 @@ function CupGameCanvas() {
   );
 }
 
-export const GameFrame = () => {
+export const GameFrame = ({ closeModal }: { closeModal: () => void }) => {
   return (
     <>
       <GamePlayProvider>
-        <CupGameCanvas />
+        <CupGameCanvas closeModal={closeModal} />
       </GamePlayProvider>
     </>
   );

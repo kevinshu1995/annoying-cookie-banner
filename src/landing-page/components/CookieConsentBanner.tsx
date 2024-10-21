@@ -86,7 +86,7 @@ function MiniGameModal({ isShowing = false, closeModal = () => {} }) {
         )}
         {modalStep === 1 && (
           <div className="w-full">
-            <CupGameCanvas />
+            <CupGameCanvas closeModal={closeModal} />
           </div>
         )}
         {modalStep > 0 && (

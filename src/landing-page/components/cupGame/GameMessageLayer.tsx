@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { useEffect, useState, useMemo } from 'react';
 import { BlueButton } from './../Button';
+import { useGamePlay } from './../context/GamePlayProvider';
 
 type GameMessageState =
   | 'welcome'
@@ -57,14 +58,17 @@ const gameOverMessages = [
 export const GameMessageLayer = ({
   state,
   setState,
+  closeModal,
 }: {
   state: GameMessageState;
   setState: (state: GameMessageState) => void;
+  closeModal: () => void;
 }) => {
   const { countdownText, isCountdownEnd, setCountdownText } = useCountDownText(
-    state === 'countdown'
+    state === 'countdown' || state === 'victory'
   );
   const gameStartText = 'START!';
+  const { round } = useGamePlay();
 
   // if state changes to countdown, set countdownText to 3
   useEffect(() => {
@@ -72,13 +76,24 @@ export const GameMessageLayer = ({
       setCountdownText(3);
       return;
     }
+    if (state === 'victory') {
+      setCountdownText(10);
+      return;
+    }
   }, [state]);
 
   // if countdownText reaches 0, set state to null (Game start)
   useEffect(() => {
-    if (isCountdownEnd) {
+    if (isCountdownEnd && state === 'countdown') {
       setTimeout(() => {
         setState('gameStart');
+      }, 500);
+      return;
+    }
+
+    if (isCountdownEnd && state === 'victory') {
+      setTimeout(() => {
+        closeModal();
       }, 500);
       return;
     }
@@ -113,11 +128,11 @@ export const GameMessageLayer = ({
             {/* countdown (game is ready to start) */}
             <h2
               className={clsx(
-                'font-bold text-4xl flex flex-col gap-8 items-center',
+                'font-bold  flex flex-col gap-8 items-center',
                 state !== 'countdown' && 'hidden'
               )}
             >
-              <span>Find the Ball!</span>
+              <span className="text-4xl">Round {round}</span>
               <span
                 className={clsx(
                   'relative text-8xl text-blue-500',
@@ -197,7 +212,7 @@ export const GameMessageLayer = ({
                 Okay, I won't try to use cookies (wink).
               </p>
               {/* TODO countdown */}
-              <p>This game will be closed in xx seconds.</p>
+              <p>This game will be closed in {countdownText} seconds.</p>
               <BlueButton
                 className="px-8 py-2 text-xl"
                 onClick={() => setState('resetGame')}
